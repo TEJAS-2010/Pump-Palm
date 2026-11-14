@@ -44,7 +44,7 @@ For Heroku, the included `Procfile` starts the Node server. Set the same databas
 
 ## Judging
 
-The most direct fits are **Art & Technology**, **Best Use of Data**, **Local Impact** and **Best Use of Storytelling**, based on the published NASA global categories. The local event's own award and pitch rules take precedence. Build the recorded walkthrough around a real sensor packet, one dated satellite observation, and three crop rotations. Check the project page from a signed-out browser before submitting it. The project and educational animations were developed with ChatGPT assistance. The videos carry a visible disclosure and do not depict farm measurements.
+The most direct fits are **Art & Technology**, **Best Use of Data**, **Local Impact** and **Best Use of Storytelling**, based on the published NASA global categories. The local event's own award and pitch rules take precedence. Build the recorded walkthrough around a real sensor packet, one dated satellite observation, and three crop rotations. Check the project page from a signed-out browser before submitting it. The educational animations illustrate farm conditions.
 
 - [Field Shift](https://www.spaceappschallenge.org/2026/challenges/field-shift-adapting-farms-with-nasa-data/)
 - [Umm Al Quwain local event](https://nasaspaceapps.ae/umm-al-quwain)

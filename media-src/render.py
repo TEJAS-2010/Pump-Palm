@@ -85,7 +85,7 @@ def render(topic, frame):
     note = titles[topic][1] if time<3 else titles[topic][2]
     d.rounded_rectangle((60,149,420,184),radius=13,fill="#eff2de")
     d.text((74,157),note,font=fonts[16],fill=INK)
-    d.text((45,485),"EDUCATIONAL ANIMATION  /  AI-ASSISTED ILLUSTRATION",font=fonts[13],fill=GREEN)
+    d.text((45,485),"EDUCATIONAL ANIMATION",font=fonts[13],fill=GREEN)
     d.rounded_rectangle((640,495,915,499),radius=2,fill=LINE)
     d.rounded_rectangle((640,495,640+275*time/7,499),radius=2,fill=GREEN)
     return image
