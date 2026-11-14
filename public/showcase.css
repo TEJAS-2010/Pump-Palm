@@ -6,3 +6,24 @@
 .thermal-example img { display: block; width: 100%; height: auto; border-radius: 12px; }
 .thermal-colorbar { height: 12px; border-radius: 5px; margin-block-start: 14px; background: linear-gradient(to right,#433a85,#2b6eac,#41ab9f,#f9da78,#e77d45,#9a2b3d); }
 .thermal-scale { display: grid; grid-template-columns: 2fr 3fr auto; margin-block: 4px 9px; font-size: .8rem; font-variant-numeric: tabular-nums; }
+
+.showcase-hero { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); align-items: stretch; overflow: hidden; border-radius: 20px; background: #ebf0e1; border: 1px solid var(--line); gap: 0; }
+.showcase-hero > div { padding: clamp(24px, 4.5vw, 59px); }
+.showcase-hero h1 { font-size: clamp(43px, 5.3vw, 77px); max-width: 16ch; }
+.showcase-section { margin-block-start: clamp(36px, 6vw, 76px); padding-block-start: clamp(24px, 4vw, 45px); }
+.showcase-section > h2 { margin-block-end: 17px; }
+.showcase-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.evidence-grid, .phone-layout, .showcase-cards { gap: var(--space); }
+.showcase-note, .evidence-grid figcaption { font-size: 13px; line-height: 1.6; }
+.showcase-table th, .showcase-table td { padding: 11px 8px; }
+.nasa-cards { margin-block-start: 22px; }
+.phone-steps li { gap: 15px; padding-block: 16px; }
+.phone-steps p { max-width: 68ch; }
+@media (max-width: 760px) {
+  .showcase-hero { grid-template-columns: 1fr; }
+  .showcase-hero img { aspect-ratio: 2 / 1; max-height: 320px; }
+  .evidence-grid, .phone-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .showcase-cards { grid-template-columns: 1fr; }
+}
