@@ -8,7 +8,7 @@ import {join} from 'node:path';
 
 test('accounts, isolation, field edits, device pairing, live telemetry and video',async t=>{
   const dir=await mkdtemp(join(tmpdir(),'pump-test-'));
-  const server=spawn(process.execPath,['server.mjs'],{env:{...process.env,NODE_ENV:'test',PORT:'0',DATABASE_URL:'',SQLITE_PATH:join(dir,'test.db')},stdio:['ignore','pipe','inherit']});
+  const server=spawn(process.execPath,['server.mjs'],{env:{...process.env,NODE_ENV:'test',PORT:'0',DATABASE_URL:'',POSTGRES_URL:'',SQLITE_PATH:join(dir,'test.db')},stdio:['ignore','pipe','inherit']});
   t.after(async()=>{
     if(server.exitCode===null){const done=once(server,'exit');server.kill();await done;}
     await rm(dir,{recursive:true,force:true});
