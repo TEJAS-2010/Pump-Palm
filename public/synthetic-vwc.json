@@ -1,0 +1,73 @@
+{
+  "provenance": "synthetic_only",
+  "seed": 41726,
+  "target": "volumetric_water_content_pct",
+  "model": "linear_regression",
+  "slope": -0.013527013699956817,
+  "intercept": 53.04788681515222,
+  "training_adc_range": [
+    1775,
+    3761.6666666666665
+  ],
+  "evaluation": {
+    "method": "leave_one_soil_sample_out",
+    "independent_samples": 30,
+    "mae_percentage_points": 0.8196998801874652,
+    "rmse_percentage_points": 0.9914535743798758
+  },
+  "held_out": {
+    "samples": 12,
+    "mae_percentage_points": 0.7572379637230089,
+    "rmse_percentage_points": 0.8681211249695283
+  },
+  "plot_points": [
+    {
+      "adc": 3489.7,
+      "vwc": 6
+    },
+    {
+      "adc": 3527.3,
+      "vwc": 6
+    },
+    {
+      "adc": 3052,
+      "vwc": 11
+    },
+    {
+      "adc": 3207.7,
+      "vwc": 11
+    },
+    {
+      "adc": 2662.3,
+      "vwc": 16
+    },
+    {
+      "adc": 2693,
+      "vwc": 16
+    },
+    {
+      "adc": 2285.3,
+      "vwc": 21
+    },
+    {
+      "adc": 2445.7,
+      "vwc": 21
+    },
+    {
+      "adc": 1992.7,
+      "vwc": 26
+    },
+    {
+      "adc": 2011.3,
+      "vwc": 26
+    },
+    {
+      "adc": 1950.7,
+      "vwc": 28
+    },
+    {
+      "adc": 1906.7,
+      "vwc": 28
+    }
+  ]
+}

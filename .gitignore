@@ -1,0 +1,9 @@
+node_modules/
+*.db*
+.env
+dist/
+hosting/assets.generated.mjs
+.vercel/
+.env.*
+!.env.example
+public/vendor/leaflet/

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f7ef"><title>Pump Pulse — Soil model lab</title><link rel="icon" href="/mark.svg"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/workspace.css"><link rel="stylesheet" href="/soil-lab.css"><script defer src="/soil-lab.js"></script></head>
+<body>
+<header class="top"><a class="brand" href="/"><img src="/mark.svg" alt=""><span>Pump Pulse</span></a><div class="top-actions"><a class="small-button" href="/showcase.html" data-text="guides">Field guides</a><button class="small-button" id="language" type="button">العربية</button></div></header>
+<main class="lab-main">
+  <div class="intro"><div><p class="eyebrow" data-text="disclosure">SYNTHETIC TRAINING DATA</p><h1 data-text="title">Soil model lab</h1><p class="sub" data-text="description">Test how a simulated calibration converts raw sensor counts into estimated volumetric water content.</p></div></div>
+  <div class="notice" data-text="warning">Simulation only. The predictions and errors below are based on generated soil samples. They cannot validate a real probe or inform irrigation.</div>
+  <div class="lab-grid">
+    <section class="panel card lab-chart"><h2 data-text="chart">Calibration curve</h2><div id="graph"></div><div class="lab-key"><span data-text="fit">Regression</span><span data-text="holdout">Held-out synthetic samples</span></div></section>
+    <section class="panel card lab-input"><h2 data-text="test">Try a reading</h2><label for="adc" data-text="adc">Raw ADC count</label><input id="adc" type="number" min="0" max="4095" step="1" value="3577" inputmode="numeric" dir="ltr">
+      <label for="slider" class="sr-only" data-text="adcSlider">Raw ADC slider</label><input type="range" id="slider" min="0" max="4095" step="1" value="3577" dir="ltr">
+      <div class="tools" id="examples"><button class="small-button" type="button" data-adc="3577">3577</button><button class="small-button" type="button" data-adc="3602">3602</button><button class="small-button" type="button" data-adc="3612">3612</button></div>
+      <p class="status" data-text="exampleNote">These buttons use your actual Arduino raw counts. The resulting predictions are synthetic.</p>
+      <div class="lab-result" aria-live="polite"><span data-text="prediction">Simulated VWC</span><strong id="prediction" dir="ltr">—</strong><p id="inputStatus" class="status"></p></div>
+    </section>
+  </div>
+  <div class="data-cards lab-metrics"><section class="panel card"><h2 data-text="training">Training samples</h2><b id="trainingCount">—</b><p data-text="trainingNote">Three repeat readings per synthetic soil sample.</p></section><section class="panel card"><h2 data-text="held">Holdout samples</h2><b id="heldCount">—</b><p data-text="heldNote">Separate simulated samples from the same assumed sensor response.</p></section><section class="panel card"><h2 data-text="error">Holdout mean error</h2><b id="holdoutError" dir="ltr">—</b><p data-text="errorNote">Mean absolute error in percentage points, on synthetic data only.</p></section></div>
+  <p id="loadStatus" class="status" role="status"></p>
+</main>
+<footer><span>Pump Pulse</span><span data-text="footer">Field Shift · Umm Al Quwain</span></footer>
+</body></html>

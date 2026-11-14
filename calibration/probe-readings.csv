@@ -1,0 +1,10 @@
+medium,raw_adc,displayed_pct
+air,4095,0
+water,1142,100
+water,1156,100
+water,1172,100
+water,1165,100
+water,1168,100
+soil,3577,19
+soil,3602,18
+soil,3612,18
