@@ -55,15 +55,21 @@ def main():
             request = Request(endpoint, data=payload, headers={
                 "Authorization": "Bearer " + token, "Content-Type": "application/json"
             }, method="POST")
-            try:
-                with urlopen(request, timeout=4) as response:
-                    print(f"ADC {raw} · HTTP {response.status}", flush=True)
-            except HTTPError as error:
-                print(f"Upload rejected (HTTP {error.code})", file=sys.stderr, flush=True)
-                if error.code in {401, 403, 404}:
-                    return 1
-            except (URLError, TimeoutError) as error:
-                print(f"Upload failed: {error}", file=sys.stderr, flush=True)
+            for attempt in range(2):
+                try:
+                    with urlopen(request, timeout=15) as response:
+                        print(f"ADC {raw} · HTTP {response.status}", flush=True)
+                    break
+                except HTTPError as error:
+                    print(f"Upload rejected (HTTP {error.code})", file=sys.stderr, flush=True)
+                    if error.code in {401, 403, 404}:
+                        return 1
+                    if error.code < 500 and error.code != 429:
+                        break
+                except (URLError, TimeoutError) as error:
+                    print(f"Upload failed: {error}", file=sys.stderr, flush=True)
+                if attempt == 0:
+                    time.sleep(2)
     return 0
 
 
