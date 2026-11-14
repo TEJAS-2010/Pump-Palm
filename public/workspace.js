@@ -60,6 +60,9 @@ Object.assign(labels,{
   planReference:'See your five-day weather reference on Field overview. Seasonal water estimates depend on the crop, season and irrigation system.|راجع مرجع الطقس لخمسة أيام في نظرة عامة على الحقل. تعتمد تقديرات المياه الموسمية على المحصول والموسم ونظام الري.|필지 개요에서 5일 날씨 기준값을 확인하세요. 계절 물 사용량은 작물, 계절 및 관개 방식에 따라 달라집니다.',
   archiveDelay:'The latest numeric SMAP sample available here is older than seven days. See the dated map and catalogue for more recent observations.|أحدث قيمة رقمية من SMAP أقدم من سبعة أيام. راجع الخريطة والفهرس المؤرخين للمشاهدات الأحدث.|최신 SMAP 수치가 7일보다 오래되었습니다. 더 최근 관측은 지도와 카탈로그에서 확인하세요.',
   smapDemo:'Regional SMAP catalogue match · 12 November 2026|نتيجة إقليمية في فهرس SMAP · ١٢ نوفمبر ٢٠٢٦|지역 SMAP 카탈로그 검색 결과 · 2026년 11월 12일',
+  openModis:'Show MODIS surface heat|اعرض حرارة السطح من MODIS|MODIS 지표 온도 보기',
+  openThermalExample:'See real ECOSTRESS temperatures · Los Angeles|اطّلع على درجات حرارة ECOSTRESS الفعلية في لوس أنجلوس|로스앤젤레스 ECOSTRESS 실제 온도 보기',
+  thermalFallback:'Regional surface temperatures are available on the MODIS map at 1 km.|تتوفر درجات حرارة السطح الإقليمية على خريطة MODIS بدقة ١ كم.|지역 지표 온도는 1km MODIS 지도에서 볼 수 있습니다.',
   heatDemo:'ECOSTRESS scene in the catalogue · 31 October 2026|مشهد في فهرس ECOSTRESS · ٣١ أكتوبر ٢٠٢٦|ECOSTRESS 카탈로그 관측 기록 · 2026년 10월 31일',
   sourceSnapshot:'Dated NASA evidence for Al Ain|بيانات ناسا المؤرخة للعين|알아인 NASA 관측 기록'
 });
@@ -271,7 +274,7 @@ function baseMap(id,center,zoom){
   tiles.addTo(result);
   return result;
 }
-let overlay=null, launchSmap=false;
+let overlay=null, launchMapLayer=null;
 function initMap(){
   map=baseMap('satelliteMap',[field.lat,field.lon],14);overlay=null;
   if(!map){document.querySelector('#tileStatus').textContent=t('unavailable');return;}
@@ -281,12 +284,16 @@ function initMap(){
     map.fitBounds(area.getBounds(),{padding:[24,24],maxZoom:17});
   }
   if(!isDemo())loadEarth('ecostress','heatScenes');
-  if(launchSmap){
-    launchSmap=false;
-    document.querySelector('#mapLayer').value='smap';
-    document.querySelector('#mapDate').value=isDemo()?'2026-11-12':earlier(layers.smap[2]);
-    setOverlay();
-  }
+  if(launchMapLayer)showMapLayer(launchMapLayer);
+}
+function showMapLayer(layer){
+  launchMapLayer=null;
+  document.querySelector('#mapLayer').value=layer;
+  document.querySelector('#mapDate').value=isDemo()?'2026-11-12':earlier(layers[layer][2]);
+  setOverlay();
+}
+function thermalLinks(){
+  return p('thermalFallback','status')+'<div class="tools"><a class="text-action" data-modis-map href="#map">'+text('openModis')+' ↗</a><a class="text-action" href="/showcase.html#ecostress-example">'+text('openThermalExample')+' ↗</a></div>';
 }
 function setOverlay(){
   if(!map)return;
@@ -295,7 +302,7 @@ function setOverlay(){
   const key=document.querySelector('#mapLayer').value, date=document.querySelector('#mapDate').value, status=document.querySelector('#tileStatus');
   status.textContent=t('coverage');
   if(key==='ecostress'){
-    if(isDemo())status.innerHTML='<a href="/showcase.html#earth-evidence">'+text('sourceSnapshot')+' ↗</a>';
+    if(isDemo())status.innerHTML=thermalLinks();
     else loadThermal('tileStatus',true);
     return;
   }
@@ -312,8 +319,8 @@ async function loadThermal(target,draw){
   try{
     const result=await api(dataPath(f,'earth/thermal'));
     if(!node.isConnected||field?.id!==f.id||(draw&&document.querySelector('#mapLayer')?.value!=='ecostress'))return;
-    if(result.configurationRequired){node.innerHTML=p('thermalNeed');return;}
-    if(result.unavailable||!result.points?.length){node.innerHTML=p('unavailable');return;}
+    if(result.configurationRequired){node.innerHTML=p('thermalNeed')+thermalLinks();return;}
+    if(result.unavailable||!result.points?.length){node.innerHTML=p('unavailable')+thermalLinks();return;}
     const min=Math.min(...result.points.map(x=>x.celsius)),max=Math.max(...result.points.map(x=>x.celsius));
     node.innerHTML='<strong dir="ltr">'+min+'–'+max+' °C</strong><p>'+esc(displayTime(result.observation))+' · '+esc(result.granule)+' · '+result.points.length+'/'+result.sampled+'</p>'+p('thermalLegend')+(result.stale?p('cached'):'');
     if(draw&&map){
@@ -363,7 +370,7 @@ function parseCsv(csv){
 }
 function demoEarthCards(){
   return card('SMAP',p('smapDemo')+'<a href="#map" data-smap-map>'+text('smapMap')+' ↗</a>')+
-    card('ECOSTRESS',p('heatDemo')+'<a href="/showcase.html#earth-evidence">'+text('sourceSnapshot')+' ↗</a>');
+    card('ECOSTRESS',p('heatDemo')+thermalLinks());
 }
 function sources(){
   if(isDemo())return heading('sources')+'<div class="split">'+demoEarthCards()+'</div><div class="section-stack">'+card('power',p('snapshotWeather')+'<a href="/showcase.html#earth-evidence">'+text('sourceSnapshot')+' ↗</a>')+'</div>';
@@ -463,7 +470,12 @@ async function session(){
   }else setField(localStorage.getItem('pump-last-field-'+account.id));
 }
 document.addEventListener('click',async event=>{
-  if(event.target.closest('[data-smap-map]'))launchSmap=true;
+  const layerLink=event.target.closest('[data-smap-map],[data-modis-map]');
+  if(layerLink){
+    const layer=layerLink.hasAttribute('data-smap-map')?'smap':'thermal';
+    if(route()==='map'&&map){event.preventDefault();showMapLayer(layer);}
+    else launchMapLayer=layer;
+  }
   const button=event.target.closest('button');
   if(!button)return;
   const a=button.dataset;
