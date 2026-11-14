@@ -58,6 +58,7 @@ Object.assign(labels,{
   backToField:'Edit field location|تعديل موقع الحقل|필지 위치 수정',
   draftSaveFailed:'Signed in. Review the field details and try saving again.|تم تسجيل الدخول. راجع بيانات الحقل وحاول الحفظ مرة أخرى.|로그인했습니다. 필지 정보를 확인하고 다시 저장하세요.',
   planReference:'See your five-day weather reference on Field overview. Seasonal water estimates depend on the crop, season and irrigation system.|راجع مرجع الطقس لخمسة أيام في نظرة عامة على الحقل. تعتمد تقديرات المياه الموسمية على المحصول والموسم ونظام الري.|필지 개요에서 5일 날씨 기준값을 확인하세요. 계절 물 사용량은 작물, 계절 및 관개 방식에 따라 달라집니다.',
+  archiveDelay:'The latest numeric SMAP sample available here is older than seven days. See the dated map and catalogue for more recent observations.|أحدث قيمة رقمية من SMAP أقدم من سبعة أيام. راجع الخريطة والفهرس المؤرخين للمشاهدات الأحدث.|최신 SMAP 수치가 7일보다 오래되었습니다. 더 최근 관측은 지도와 카탈로그에서 확인하세요.',
   smapDemo:'Regional SMAP catalogue match · 12 November 2026|نتيجة إقليمية في فهرس SMAP · ١٢ نوفمبر ٢٠٢٦|지역 SMAP 카탈로그 검색 결과 · 2026년 11월 12일',
   heatDemo:'ECOSTRESS scene in the catalogue · 31 October 2026|مشهد في فهرس ECOSTRESS · ٣١ أكتوبر ٢٠٢٦|ECOSTRESS 카탈로그 관측 기록 · 2026년 10월 31일',
   sourceSnapshot:'Dated NASA evidence for Al Ain|بيانات ناسا المؤرخة للعين|알아인 NASA 관측 기록'
@@ -225,9 +226,9 @@ function earthSeries(kind,result){
   const keyLabel=key=>key.startsWith('SFMC')?'surface':key.startsWith('RZMC')?'rootMoist':valueLabels[key]??key;
   const mean=rows=>{const values=rows.map(r=>r.values[index]).filter(Number.isFinite);return values.length>=4?values.reduce((a,b)=>a+b,0)/values.length:null;};
   const recent=mean(series.slice(-7)),past=mean(series.slice(-21,-7));
-  const drying=kind==='smap'&&!result.stale&&recent!==null&&past!==null&&recent<=past-.03;
+  const drying=kind==='smap'&&!result.stale&&!result.archived&&recent!==null&&past!==null&&recent<=past-.03;
 
-  return (kind==='smap'?p('regional'):'')+(drying?notice('dryWatch'):'')+'<p class="status">'+text('observed')+' '+esc(result.observation)+' · '+text('lastCheck')+' '+esc(displayTime(result.checkedAt))+(result.stale?' · '+text('cached'):'')+'</p>'+chart(series.map(row=>row.values[index]))+'<ul class="data-list">'+result.keys.map((key,i)=>'<li><span>'+text(keyLabel(key))+'</span><b dir="ltr">'+(latest.values[i]==null?'—':esc(latest.values[i])+' '+esc(earthUnits[key]??''))+'</b></li>').join('')+'</ul>';
+  return (kind==='smap'?p('regional'):'')+(result.archived?notice('archiveDelay'):'')+(drying?notice('dryWatch'):'')+'<p class="status">'+text('observed')+' '+esc(result.observation)+' · '+text('lastCheck')+' '+esc(displayTime(result.checkedAt))+(result.stale?' · '+text('cached'):'')+'</p>'+chart(series.map(row=>row.values[index]))+'<ul class="data-list">'+result.keys.map((key,i)=>'<li><span>'+text(keyLabel(key))+'</span><b dir="ltr">'+(latest.values[i]==null?'—':esc(latest.values[i])+' '+esc(earthUnits[key]??''))+'</b></li>').join('')+'</ul>';
 }
 async function loadEarth(kind,target){
   const panel=document.getElementById(target),f=field;if(!panel||!f)return;

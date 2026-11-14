@@ -1,4 +1,5 @@
 import { sampleThermal } from './thermal.mjs';
+import { archivedSmap } from './smap.mjs';
 
 const day = 86400000;
 const hour = 3600000;
@@ -70,8 +71,9 @@ export function makeEarth(query, config = {}) {
   }
 
   function series(kind, field) {
-    return cache(kind+':'+field.lat.toFixed(3)+':'+field.lon.toFixed(3), (kind==='smap'?48:12)*hour, async () => {
-      const params = kind === 'smap' ? (config.SMAP_POWER_PARAMETERS||'SFMC_SMAP,RZMC_SMAP').split(',') : ['T2M_MAX','RH2M','PRECTOTCORR','ALLSKY_SFC_SW_DWN'];
+    if (kind === 'smap') return cache('smap-zarr:'+field.lat.toFixed(3)+':'+field.lon.toFixed(3),48*hour,()=>archivedSmap(field));
+    return cache(kind+':'+field.lat.toFixed(3)+':'+field.lon.toFixed(3),12*hour, async () => {
+      const params = ['T2M_MAX','RH2M','PRECTOTCORR','ALLSKY_SFC_SW_DWN'];
       const url = new URL(POWER);
       const options = { parameters: params.join(','), community:'AG', latitude:field.lat, longitude:field.lon,
         start:compact(now()-60*day),end:compact(now()-3*day),format:'JSON','time-standard':'UTC' };

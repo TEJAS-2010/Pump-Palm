@@ -15,7 +15,7 @@ Install Node.js 24, then run `npm ci`, `npm test` and `npm start`. Open http://l
 
 | Source | Use |
 | --- | --- |
-| SMAP | Dated GIBS L2 map, CMR catalogue lookup, and a POWER L4 regional series adapter. The series needs verification against the deployed POWER endpoint. Set `SMAP_POWER_PARAMETERS` if the current POWER dictionary exposes different SMAP-specific aliases. |
+| SMAP | Dated GIBS L2 map, CMR catalogue lookup, and NASA POWER’s public SMAP Level 4 daily Zarr archive. The workspace labels delayed archive values and suppresses current drying alerts when the latest numeric sample is older than seven days. |
 | ECOSTRESS | CMR catalogue for thermal and ET scenes. The LST overlay samples dated, original 70 m COG pixels, filtering by QC, cloud and water. It requires `EARTHDATA_TOKEN` on the server and a usable overpass. ET is currently scene discovery only. |
 | NASA POWER | API request for historical temperature, humidity, precipitation and radiation. |
 | HLS/Landsat and Sentinel-2, MODIS and VIIRS | Dated GIBS layers with CMR scene discovery. The views present spatial context, with no crop damage classifier. |
