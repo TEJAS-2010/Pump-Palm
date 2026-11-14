@@ -4,9 +4,9 @@
 <section class="panel card arduino-instructions"><h2>USB setup</h2><ol>
 <li>On the computer, run the complete Arduino sketch and confirm the Serial Monitor shows lines beginning with <code>Raw:</code> at <strong>115200 baud</strong>. Close the Serial Monitor to release the USB port.</li>
 <li>In Pump Pulse, save a field and open <strong>Arduino &amp; salinity</strong>. Tap <strong>Pair Arduino</strong> and keep the one-time device token private.</li>
-<li>From the project folder on the computer, run the commands below. Replace <code>COM3</code> with the port shown in your Arduino IDE and use the base address of your Pump Pulse deployment.</li>
+<li>Download the <a href="https://raw.githubusercontent.com/TEJAS-2010/Pump-Palm/main/firmware/serial_bridge.py" download>USB bridge</a> to your computer. Open a terminal in the download folder, then run the commands below. Replace <code>COM3</code> with the port shown in your Arduino IDE.</li>
 </ol><pre>python -m pip install pyserial
-python firmware/serial_bridge.py COM3 https://YOUR-PUMP-PULSE-SITE</pre>
-<p>Enter the token when prompted. On your phone, sign into the same Pump Pulse account and open <strong>Arduino &amp; salinity</strong>. Match the newest raw count to the bridge output.</p>
+python serial_bridge.py COM3 https://pump-palm.vercel.app</pre>
+<p>Enter the token when prompted. On your phone, sign into the same Pump Pulse account and open <strong>Arduino &amp; salinity</strong>. Match the newest raw count to the bridge output. A successful upload prints <strong>HTTP 202</strong>.</p>
 <p class="showcase-note">A private preview may require additional hosting access. If the bridge receives a sign-in response, use an authorized API route on your deployment. Keep the device token separate from hosting credentials.</p>
 </section></main><footer><span>Pump Pulse</span><span>ESP32 setup</span></footer></body></html>
