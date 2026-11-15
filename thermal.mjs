@@ -44,6 +44,16 @@ function projection(image) {
   throw Error('Unsupported raster coordinate system');
 }
 
+export function clearLandTemperature(raw, cloud, water, qc, nodata) {
+  if (cloud !== 0 || water !== 0 || !Number.isInteger(qc) || qc < 0 || qc > 65535 ||
+      !Number.isFinite(raw) || raw === nodata) return null;
+  // NASA's Level 2 ATBD, table 8: bits 0–1 describe the retrieval and bits
+  // 2–3 describe input quality. The other bits need not be zero.
+  if ((qc & 0b1111) !== 0) return null;
+  const kelvin = raw >= 7500 ? raw * 0.02 : raw;
+  return kelvin >= 200 && kelvin <= 385 ? Math.round((kelvin - 273.15) * 10) / 10 : null;
+}
+
 export async function sampleThermal(entries, field, token) {
   if(!token)return { configurationRequired:true };
   let reason='noUsablePixels';
@@ -69,14 +79,11 @@ export async function sampleThermal(entries, field, token) {
       const [temps,masks,quality,waters]=await Promise.all(images.map(image=>image.readRasters({window,samples:[0],interleave:true,signal:controller})));
       const points=[],width=window[2]-window[0],nodata=primary.getGDALNoData();
       for(let i=0;i<temps.length;i++){
-        if(masks[i]!==0||waters[i]!==0||quality[i]!==0||!Number.isFinite(temps[i])||temps[i]===nodata)continue;
-        // The V003 catalogue documents 0.02 K per encoded unit.
-        // Accept physical Kelvin when the provider has already applied the scale.
-        const kelvin=temps[i]>=7500?temps[i]*.02:temps[i];
-        if(kelvin<200||kelvin>385)continue;
+        const celsius=clearLandTemperature(temps[i],masks[i],waters[i],quality[i],nodata);
+        if(celsius===null)continue;
         const px=left+(window[0]+(i%width)+.5)*dx,py=top+(window[1]+Math.floor(i/width)+.5)*dy;
         const [lon,lat]=proj4(reference,'EPSG:4326',[px,py]);
-        points.push({lat,lon,celsius:Math.round((kelvin-273.15)*10)/10});
+        points.push({lat,lon,celsius});
       }
       if(points.length)return {observation:entry.time_start,granule:entry.producer_granule_id??entry.title,points,sampled:temps.length};
     }catch{

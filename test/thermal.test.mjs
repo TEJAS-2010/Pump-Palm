@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { sampleThermal } from '../thermal.mjs';
+import { sampleThermal, clearLandTemperature } from '../thermal.mjs';
 
 test('reports Earthdata authorization failures separately from empty scenes', async t => {
   const links = ['LST', 'cloud', 'QC', 'water'].map(band => ({
@@ -19,4 +19,14 @@ test('reports Earthdata authorization failures separately from empty scenes', as
   assert.deepEqual(await sampleThermal([], field, 'test-token'), {
     unavailable: true, reason: 'noUsablePixels'
   });
+});
+
+
+test('uses the ECOSTRESS retrieval and input quality bits while excluding cloud, water, and fill', () => {
+  assert.equal(clearLandTemperature(15000, 0, 0, 0b1110000001000000, 0), 26.9);
+  assert.equal(clearLandTemperature(15000, 0, 0, 0b1110000001000010, 0), null);
+  assert.equal(clearLandTemperature(15000, 0, 0, 0b1110000001000100, 0), null);
+  assert.equal(clearLandTemperature(15000, 1, 0, 0, 0), null);
+  assert.equal(clearLandTemperature(15000, 0, 1, 0, 0), null);
+  assert.equal(clearLandTemperature(0, 0, 0, 0, 0), null);
 });
