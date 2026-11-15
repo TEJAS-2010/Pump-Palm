@@ -95,11 +95,11 @@ export function makeApp({ query, prod, assetMiddleware, config }) {
     if(!body||(body.name!=null&&(typeof body.name!=='string'||body.name.length>80))||!(/^[A-Z]{2}$/).test(body.country)||!numberIn(body.lat,-85,85)||!numberIn(body.lon,-180,180))return null;
     const polygon=body.polygon??[];
     if(!Array.isArray(polygon)||polygon.length>100||(polygon.length>0&&polygon.length<3)||polygon.some(point=>!Array.isArray(point)||point.length!==2||!numberIn(point[0],-85,85)||!numberIn(point[1],-180,180)))return null;
-    if(!optional(body.ece,0,100)||!optional(body.dry,0,100)||!optional(body.wet,0,100)||!optional(body.maxEc,0,100)||!optional(body.eventLimit,0,1e8)||!optional(body.depth,0,300)||!optional(body.heat,0,65)||(body.dry!=null&&body.wet!=null&&body.dry>=body.wet))return null;
+    if(!optional(body.ece,0,100)||!optional(body.soilEcLimit,0,100)||!optional(body.labEcLimit,0,100)||!optional(body.surfaceHeat,0,95)||!optional(body.dry,0,100)||!optional(body.wet,0,100)||!optional(body.maxEc,0,100)||!optional(body.eventLimit,0,1e8)||!optional(body.depth,0,300)||!optional(body.heat,0,65)||(body.dry!=null&&body.wet!=null&&body.dry>=body.wet))return null;
     const previous=Array.isArray(body.previous)?body.previous.slice(0,2).map(v=>String(v).trim().slice(0,50)):[];
     const crop=['palm','vegetables','other'].includes(body.crop)?body.crop:null;
     return {name:body.name?.trim()||'My field',country:body.country,lat:body.lat,lon:body.lon,polygon,previous,crop,
-      ece:body.ece??null,dry:body.dry??null,wet:body.wet??null,maxEc:body.maxEc??null,eventLimit:body.eventLimit??null,depth:body.depth??null,heat:body.heat??null};
+      ece:body.ece??null,soilEcLimit:body.soilEcLimit??null,labEcLimit:body.labEcLimit??null,surfaceHeat:body.surfaceHeat??null,dry:body.dry??null,wet:body.wet??null,maxEc:body.maxEc??null,eventLimit:body.eventLimit??null,depth:body.depth??null,heat:body.heat??null};
   }
   app.post('/api/fields',auth,async(req,res)=>{
     const input=fieldInput(req.body);
@@ -148,13 +148,13 @@ export function makeApp({ query, prod, assetMiddleware, config }) {
     if(!body||typeof body.timestamp!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d{1,3})?)?(?:Z|[+-]\d\d:\d\d)$/.test(body.timestamp))return null;
     const time=Date.parse(body.timestamp);
     if(!Number.isFinite(time)||time>Date.now()+300000)return null;
-    const value={timestamp:new Date(time).toISOString(),moisture_pct:body.moisture_pct??null,ecw_dsm:body.ecw_dsm??null,litres:body.litres??null,soil_temp_c:body.soil_temp_c??null};
+    const value={timestamp:new Date(time).toISOString(),moisture_pct:body.moisture_pct??null,ecw_dsm:body.ecw_dsm??null,soil_ec_dsm:body.soil_ec_dsm??null,litres:body.litres??null,soil_temp_c:body.soil_temp_c??null};
     const raw = body.raw_adc;
     const calibration = body.probe_calibration;
     if ((raw != null && !validAdc(raw)) || (calibration != null && (raw == null || calibration !== probeCalibration.id))) return null;
     if (raw != null) value.raw_adc = raw;
     if (calibration != null) value.probe_calibration = calibration;
-    if(Object.values(value).slice(1).every(v=>v===null)||!optional(value.moisture_pct,0,100)||!optional(value.ecw_dsm,0,100)||!optional(value.litres,0,1e8)||!optional(value.soil_temp_c,-30,100))return null;
+    if(Object.values(value).slice(1).every(v=>v===null)||!optional(value.moisture_pct,0,100)||!optional(value.ecw_dsm,0,100)||!optional(value.soil_ec_dsm,0,100)||!optional(value.litres,0,1e8)||!optional(value.soil_temp_c,-30,100))return null;
     return withProbeCalibration(value);
   }
   async function insertReading(device,value,origin){

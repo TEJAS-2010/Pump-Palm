@@ -1,4 +1,4 @@
-"""Forward ADC counts from the team's existing ESP32 serial output."""
+"""Forward raw probe counts or calibrated field readings from a serial sensor."""
 import argparse
 from datetime import datetime, timezone
 from getpass import getpass
@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 
 CALIBRATION = "esp32-probe-2026-11-14-v1"
 RAW_LINE = re.compile(rb"^Raw:\s*(\d{1,4})\s+Moisture:")
+METRICS = {"moisture_pct", "soil_ec_dsm", "ecw_dsm", "litres", "soil_temp_c"}
 
 
 def read_raw(line):
@@ -20,45 +21,62 @@ def read_raw(line):
     return int(match[1]) if match and int(match[1]) <= 4095 else None
 
 
+def read_measurement(line):
+    raw = read_raw(line)
+    if raw is not None:
+        return {"raw_adc": raw, "probe_calibration": CALIBRATION}
+    if not line.lstrip().startswith(b"{"):
+        return {}
+    try:
+        reading = json.loads(line)
+    except (ValueError, UnicodeError):
+        return {}
+    if not isinstance(reading, dict):
+        return {}
+    return {
+        key: value for key, value in reading.items()
+        if key in METRICS and type(value) in (int, float) and -1e9 < value < 1e9
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("port", help="Arduino serial port, such as COM3")
-    parser.add_argument("site", help="Pump Pulse base URL")
+    parser.add_argument("site", help="Falaj Fields base URL")
     args = parser.parse_args()
     site = urlsplit(args.site)
     loopback = site.hostname in {"localhost", "127.0.0.1", "::1"}
     if not site.hostname or site.username or site.password or site.query or site.fragment or site.path not in {"", "/"}:
-        parser.error("Enter the base URL of your Pump Pulse site")
+        parser.error("Enter the base URL of your Falaj Fields site")
     if site.scheme != "https" and not (site.scheme == "http" and loopback):
         parser.error("Use HTTPS, or HTTP for a local loopback test")
     try:
         import serial
     except ImportError:
         parser.exit(2, "Install pyserial with python -m pip install pyserial\n")
-    token = os.environ.get("PUMP_DEVICE_TOKEN") or getpass("Pump Pulse device token: ")
+    token = os.environ.get("PUMP_DEVICE_TOKEN") or getpass("Falaj Fields device token: ")
     if not re.fullmatch(r"[0-9a-f]{64}", token):
-        parser.error("Enter the token from Pump Pulse → Pair Arduino")
+        parser.error("Enter the token from Falaj Fields → Connect a sensor")
     endpoint = args.site.rstrip("/") + "/api/telemetry"
     last = float("-inf")
     with serial.Serial(args.port, 115200, timeout=2) as port:
-        print("Listening for Raw readings. Press Ctrl+C to stop.", flush=True)
+        print("Listening for raw or calibrated readings. Press Ctrl+C to stop.", flush=True)
         while True:
-            raw = read_raw(port.readline())
-            if raw is None or time.monotonic() - last < 5:
+            reading = read_measurement(port.readline())
+            if not reading or time.monotonic() - last < 5:
                 continue
             last = time.monotonic()
             payload = json.dumps({
                 "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
-                "raw_adc": raw,
-                "probe_calibration": CALIBRATION
-            }).encode()
+                **reading
+            }, allow_nan=False).encode()
             request = Request(endpoint, data=payload, headers={
                 "Authorization": "Bearer " + token, "Content-Type": "application/json"
             }, method="POST")
             for attempt in range(2):
                 try:
                     with urlopen(request, timeout=15) as response:
-                        print(f"ADC {raw} · HTTP {response.status}", flush=True)
+                        print(f"Reading uploaded · HTTP {response.status}", flush=True)
                     break
                 except HTTPError as error:
                     print(f"Upload rejected (HTTP {error.code})", file=sys.stderr, flush=True)

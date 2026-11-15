@@ -27,7 +27,7 @@ test('accounts, isolation, field edits, device pairing, live telemetry and video
   assert.equal(res.status,201);
   assert.match(res.headers.get('set-cookie'),/HttpOnly/);
   cookie=res.headers.get('set-cookie').split(';')[0];
-  const initial={name:'Test field',lat:25.5,lon:55.55,country:'AE',polygon:[[25.5,55.55],[25.501,55.55],[25.501,55.552]],dry:18,wet:29,maxEc:3,eventLimit:150,heat:39,previous:['Tomato','Zucchini']};
+  const initial={name:'Test field',lat:25.5,lon:55.55,country:'AE',polygon:[[25.5,55.55],[25.501,55.55],[25.501,55.552]],dry:18,wet:29,maxEc:3,soilEcLimit:4,labEcLimit:5,surfaceHeat:46,eventLimit:150,heat:39,previous:['Tomato','Zucchini']};
   const [created,field]=await call('/api/fields','POST',initial);
   assert.equal(created.status,201);
   assert.deepEqual(field.polygon,initial.polygon);
@@ -38,9 +38,12 @@ test('accounts, isolation, field edits, device pairing, live telemetry and video
   const [edited,updated]=await call(base,'PUT',{...initial,name:'Updated'});
   assert.equal(edited.status,200);
   assert.equal(updated.plan.priority,'cover');
+  assert.equal(updated.soilEcLimit,4);
+  assert.equal(updated.labEcLimit,5);
+  assert.equal(updated.surfaceHeat,46);
   const [,device]=await call(base+'/devices','POST',{label:'North probe'});
   assert.match(device.token,/^[a-f0-9]{64}$/);
-  const data={timestamp:new Date().toISOString(),moisture_pct:17.2,ecw_dsm:3.5,litres:161.1,soil_temp_c:33.2};
+  const data={timestamp:new Date().toISOString(),moisture_pct:17.2,soil_ec_dsm:5.2,ecw_dsm:3.5,litres:161.1,soil_temp_c:33.2};
   const [unauth]=await call('/api/telemetry','POST',data);
   assert.equal(unauth.status,401);
   const headers={Authorization:'Bearer '+device.token};
@@ -49,6 +52,8 @@ test('accounts, isolation, field edits, device pairing, live telemetry and video
   let [,rows]=await call(base+'/readings');
   assert.equal(rows.length,1);
   assert.equal(rows[0].ecw_dsm,3.5);
+  assert.equal(rows[0].soil_ec_dsm,5.2);
+  assert.equal((await call('/api/telemetry','POST',{...data,soil_ec_dsm:101},headers))[0].status,400);
   assert.equal(rows[0].origin,'arduino');
   const raw = {timestamp:new Date(Date.now()+1000).toISOString(),raw_adc:3577,probe_calibration:'esp32-probe-2026-11-14-v1'};
   assert.equal((await call('/api/telemetry','POST',raw,headers))[0].status,202);
@@ -105,7 +110,9 @@ test('accounts, isolation, field edits, device pairing, live telemetry and video
   const model=await fetch('http://127.0.0.1:'+port+'/synthetic-vwc.json').then(response=>response.json());
   assert.equal(model.provenance,'synthetic_only');
   assert.equal(model.held_out.samples,12);
-  const video=await fetch('http://127.0.0.1:'+port+'/videos/heat.mp4',{headers:{Range:'bytes=0-31'}});
+  const video=await fetch('http://127.0.0.1:'+port+'/videos/cover.mp4',{headers:{Range:'bytes=0-31'}});
   assert.equal(video.status,206);
   assert.match(video.headers.get('content-type'),/video\/mp4/);
+  const captions=await fetch('http://127.0.0.1:'+port+'/videos/cover.ar.vtt');
+  assert.match(await captions.text(),/^WEBVTT/);
 });

@@ -28,7 +28,7 @@ export default async function handleRequest(req, res) {
   try {
     return (await getApp())(req, res);
   } catch (error) {
-    console.error('Pump Pulse database initialization failed:', error.code ?? error.name);
+    console.error('Falaj Fields database initialization failed:', error.code ?? error.name);
     res.writeHead(503, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({ error: 'serverError' }));
   }

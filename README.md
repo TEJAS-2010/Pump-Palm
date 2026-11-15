@@ -1,6 +1,6 @@
-# Pump Pulse
+# Falaj Fields
 
-Mobile-first field decision support for **Field Shift: Adapting Farms with NASA Data**, built for the virtual Umm Al Quwain NASA Space Apps round. The workspace opens on a labelled Al Ain example field. Visitors can explore the map, recorded bench readings, rotation comparison and guides before creating a Pump Pulse account. The project and its three educational animations are available without an account at `/showcase.html`.
+Mobile-first field decision support for **Field Shift: Adapting Farms with NASA Data**, built for the virtual Umm Al Quwain NASA Space Apps round. The workspace opens on a labelled Umm Al Quwain example field. Visitors can explore the map, recorded bench readings, rotation comparison and guides before creating a Falaj Fields account. The project and its three narrated educational guides are available without an account at `/showcase.html`.
 
 ## Run
 
@@ -34,7 +34,7 @@ The planner uses UAE Ministry planting windows. Water estimates are entered by t
 2. In [Vercel](https://vercel.com/new), import the GitHub repository. Keep the repository root as the project root. The committed `vercel.json` runs the test suite before building and serves the demo, hardware guide, map assets and videos separately from the API.
 3. Attach a persistent PostgreSQL database through the Vercel Marketplace or connect your own. Set the pooled connection string as `DATABASE_URL` or `POSTGRES_URL` in Production. Set a separate database for Preview if testing account features there. The API returns 503 while the database is unconfigured and the public demo stays available.
 4. Set a randomly generated `CRON_SECRET` in Production to authorize the daily SMAP refresh. Set `EARTHDATA_TOKEN` if you want to enable authenticated ECOSTRESS LST sampling. Use Vercel environment variables for these values.
-5. Deploy and open the production `.vercel.app` domain in a signed-out browser. Confirm the demo loads, create a Pump Pulse account, save a field, then post one real sensor packet and confirm it appears. Point the USB bridge at the new domain and pair a device there. Vercel builds and deploys pushed `main` commits automatically and creates previews for other branches.
+5. Deploy and open the production `.vercel.app` domain in a signed-out browser. Confirm the demo loads, create a Falaj Fields account, save a field, then post one real sensor packet and confirm it appears. Point the USB bridge at the new domain and pair a device there. Vercel builds and deploys pushed `main` commits automatically and creates previews for other branches.
 
 The first PostgreSQL deployment starts with an empty database. Accounts, fields, and sensor readings created on another host require a separate data migration. The source ZIP contains source files and recorded or synthetic test assets only.
 

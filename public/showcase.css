@@ -27,3 +27,13 @@
 @media (max-width: 560px) {
   .showcase-cards { grid-template-columns: 1fr; }
 }
+
+.judge-path {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space);
+  margin-block-start: 20px;
+}
+.judge-path article { display: flex; flex-direction: column; align-items: start; gap: 8px; }
+.judge-path p { flex: 1; }
+@media (max-width: 760px) { .judge-path { grid-template-columns: 1fr; } }

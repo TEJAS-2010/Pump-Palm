@@ -166,3 +166,30 @@ footer { gap: 12px 20px; font-size: 13px; padding: 23px var(--gutter); flex-wrap
   .intro-actions { align-items: stretch; flex-direction: column; }
   .intro-actions .small-button { justify-content: center; }
 }
+
+.control-panel .tools { grid-column: 1 / -1; }
+.plan-summary { margin-block: 0 var(--space); color: var(--green); font-weight: 700; }
+.plan-summary:empty { display: none; }
+
+.condition-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space); margin-block-end:var(--space); }
+.condition-grid .card h2 a { color:inherit; margin:0; text-decoration:none; }
+.field-warning { display:flex; gap:11px; align-items:flex-start; padding:11px 13px; margin-block:10px; background:#eef3e8; border-radius:10px; }
+.field-warning.is-warning { background:#fff0d5; color:#783718; border:1px solid #e9bc80; }
+.field-warning strong { display:block; }
+.field-warning p { margin-block-start:2px; }
+.warning-icon { font-size:1.15em; flex:none; }
+.measurement-value { display:flex; flex-wrap:wrap; gap:5px 14px; align-items:baseline; margin-block:7px; }
+.measurement-value strong { font-size:1.35rem; }
+.sidebar .workspace-nav { margin-block-start:23px; gap:3px; }
+.sidebar nav a { min-height:39px; padding-block:7px; }
+@media (max-width:1000px) { .condition-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:620px) {
+  .condition-grid { grid-template-columns:1fr; }
+  .sidebar nav a { min-height:44px; }
+}
+
+.workspace .guide h2 {
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  line-height: 1.2;
+  text-wrap: balance;
+}

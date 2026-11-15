@@ -14,7 +14,7 @@ title_font = ImageFont.truetype(SERIF, 41)
 titles = {
     "heat": ("Heat needs a ground check", "Heat", "Check the probe"),
     "salt": ("Moist soil can still stress roots", "Moist soil", "Measure conductivity"),
-    "cover": ("Ground cover has a water cost", "Bare soil", "Budget establishment water"),
+    "cover-legacy": ("Ground cover has a water cost", "Bare soil", "Budget establishment water"),
 }
 
 def plant(draw, x, y, size=1.0, shade=GREEN):
@@ -35,7 +35,7 @@ def render(topic, frame):
     time = frame/FPS
     image = Image.new("RGB",(WIDTH,HEIGHT),PAPER)
     d = ImageDraw.Draw(image)
-    d.text((43,31),"PUMP PULSE  /  FIELD GUIDE",font=fonts[16],fill=GREEN)
+    d.text((43,31),"FALAJ FIELDS  /  FIELD GUIDE",font=fonts[16],fill=GREEN)
     d.text((43,66),titles[topic][0],font=title_font,fill=INK)
     d.rounded_rectangle((42,135,918,466),radius=22,fill="#fbfaef",outline=LINE,width=2)
     d.rectangle((43,327,917,439),fill="#e6c8a0")

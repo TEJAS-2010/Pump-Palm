@@ -10,9 +10,9 @@ The current app can infer a **relative wetness index** from the supplied ESP32 p
 
 The Arduino's printed 18–19% values were produced by its own mapping, so using them as training targets would reproduce its formula. Air and immersion endpoints are also unsuitable as labels for true soil volumetric water content (VWC). The relative index stays separate from any field thresholds configured for measured moisture percentages.
 
-## See it in Pump Pulse
+## See it in Falaj Fields
 
-Keep the team's working Arduino sketch running at 115200 baud. The supplied NASA.ino begins partway through readSoil() and omits the wiring constants, so use the team's complete sketch. If using USB, close Arduino Serial Monitor, install pyserial, pair the device in Pump Pulse, and run this from the project root:
+Keep the team's working Arduino sketch running at 115200 baud. The supplied NASA.ino begins partway through readSoil() and omits the wiring constants, so use the team's complete sketch. If using USB, close Arduino Serial Monitor, install pyserial, pair the device in Falaj Fields, and run this from the project root:
 
 ```sh
 python -m pip install pyserial
@@ -37,6 +37,6 @@ The trainer averages repeat ADC readings within each soil sample, fits a linear 
 
 ## Synthetic soil lab
 
-Open `/soil-lab.html` in Pump Pulse. Its built-in examples are your supplied raw ADC counts. Predicted volumetric water content is synthetic. It comes from a regression fitted to 30 generated soil samples and evaluated on 12 held-out synthetic samples. Each generated sample has three repeated ADC readings. The simulation assumes a single hypothetical soil response with nonlinear curvature and packing and measurement variation. It uses a fixed random seed. The reported error measures performance against that synthetic generator.
+Open `/soil-lab.html` in Falaj Fields. Its built-in examples are your supplied raw ADC counts. Predicted volumetric water content is synthetic. It comes from a regression fitted to 30 generated soil samples and evaluated on 12 held-out synthetic samples. Each generated sample has three repeated ADC readings. The simulation assumes a single hypothetical soil response with nonlinear curvature and packing and measurement variation. It uses a fixed random seed. The reported error measures performance against that synthetic generator.
 
 Run `node calibration/simulate-vwc.mjs` to regenerate both CSV files and the model. The app keeps the simulated model separate from farm readings, alert thresholds and stored telemetry. To fit the field probe, collect real reference samples and use the training command above.
