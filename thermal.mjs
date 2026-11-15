@@ -1,4 +1,4 @@
-import { fromUrl } from 'geotiff';
+import { fromCustomClient } from 'geotiff';
 import proj4 from 'proj4';
 
 const approvedHosts = new Set(['data.lpdaac.earthdatacloud.nasa.gov','data.earthdata.nasa.gov']);
@@ -8,6 +8,34 @@ function asset(entry, band) {
   }).find(url => url && url.protocol === 'https:' && approvedHosts.has(url.hostname) &&
     !url.username && !url.password && !url.port && new RegExp('_'+band+'\\.tif$','i').test(url.pathname));
 }
+async function openRaster(url, token, signal, outcome) {
+  return fromCustomClient({
+    async request({ headers }) {
+      const response = await fetch(url, { headers, signal });
+      // The protected data gate can redirect to Earthdata Login or return an
+      // access error when this account has not approved the data application.
+      if (response.status === 401 || response.status === 403 ||
+          new URL(response.url).hostname === 'urs.earthdata.nasa.gov') {
+        outcome.accessDenied=true;
+        await response.body?.cancel();
+        throw new Error('Earthdata download access denied');
+      }
+      if (response.status !== 206) {
+        await response.body?.cancel();
+        throw new Error('Unexpected raster range response: ' + response.status);
+      }
+      return {
+        ok: response.ok, status: response.status,
+        getHeader: key => response.headers.get(key) ?? undefined,
+        getData: () => response.arrayBuffer()
+      };
+    }
+  }, {
+    headers: { Authorization: 'Bearer ' + token },
+    blockSize: 65536, cacheSize: 24, allowFullFile: false
+  }, signal);
+}
+
 function projection(image) {
   const keys=image.getGeoKeys(), epsg=keys.ProjectedCSTypeGeoKey;
   if(keys.GeographicTypeGeoKey===4326&&!epsg)return 'EPSG:4326';
@@ -18,14 +46,20 @@ function projection(image) {
 
 export async function sampleThermal(entries, field, token) {
   if(!token)return { configurationRequired:true };
+  let reason='noUsablePixels';
   for(const entry of entries.slice(0,3)){
     const lst=asset(entry,'LST'), cloud=asset(entry,'cloud(?:_mask)?'), qc=asset(entry,'QC'), water=asset(entry,'water(?:_mask)?');
     if(!lst||!cloud||!qc||!water)continue;
+    const controller=AbortSignal.timeout(12000);
+    const outcome={accessDenied:false};
     try {
-      const controller=AbortSignal.timeout(7000);
-      const options={headers:{Authorization:'Bearer '+token},allowFullFile:false,maxRanges:0};
-      const files=await Promise.all([lst,cloud,qc,water].map(url=>fromUrl(url.href,options,controller)));
-      const images=await Promise.all(files.map(f=>f.getImage()));
+      const opened=await Promise.allSettled([lst,cloud,qc,water].map(async url=>{
+        const file=await openRaster(url.href,token,controller,outcome);
+        return file.getImage();
+      }));
+      const failed=opened.find(result=>result.status==='rejected');
+      if(failed)throw failed.reason;
+      const images=opened.map(result=>result.value);
       const primary=images[0], reference=projection(primary), [left,top]=primary.getOrigin(), [dx,dy]=primary.getResolution();
       if(!dx||!dy||images.some(image=>image.getWidth()!==primary.getWidth()||image.getHeight()!==primary.getHeight()||image.getOrigin().slice(0,2).some((value,i)=>Math.abs(value-[left,top][i])>1e-6)||image.getResolution().slice(0,2).some((value,i)=>Math.abs(value-[dx,dy][i])>1e-6)))continue;
       const [x,y]=proj4('EPSG:4326',reference,[field.lon,field.lat]);
@@ -45,7 +79,11 @@ export async function sampleThermal(entries, field, token) {
         points.push({lat,lon,celsius:Math.round((kelvin-273.15)*10)/10});
       }
       if(points.length)return {observation:entry.time_start,granule:entry.producer_granule_id??entry.title,points,sampled:temps.length};
-    }catch(error){console.warn('Thermal raster:',error.message);}
+    }catch{
+      if(outcome.accessDenied)return {unavailable:true,reason:'earthdataAuthorization'};
+      reason=controller.aborted?'downloadTimeout':'rasterDownloadFailed';
+      console.warn('Thermal raster:',reason);
+    }
   }
-  return { unavailable:true };
+  return { unavailable:true,reason };
 }

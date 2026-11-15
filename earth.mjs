@@ -51,7 +51,7 @@ async function request(url) {
 
 export function makeEarth(query, config = {}) {
   const pending = new Map();
-  async function cache(key, ttl, load) {
+  async function cache(key, ttl, load, unavailable = {}) {
     const [row] = await query('SELECT stamp,payload FROM earth WHERE key=?', [key]);
     if (row && now() - Number(row.stamp) < ttl) return { ...JSON.parse(row.payload), checkedAt: Number(row.stamp) };
     if (pending.has(key)) return pending.get(key);
@@ -63,7 +63,7 @@ export function makeEarth(query, config = {}) {
         return { ...payload, checkedAt: stamp };
       } catch (error) {
         console.warn('Earth feed:', key.split(':')[0], error.message);
-        return row ? { ...JSON.parse(row.payload), checkedAt: Number(row.stamp), stale: true } : { unavailable: true };
+        return row ? { ...JSON.parse(row.payload), checkedAt: Number(row.stamp), stale: true } : { unavailable: true, ...unavailable, ...(error.thermalReason?{reason:error.thermalReason}:{}) };
       }
     })();
     pending.set(key, work);
@@ -125,9 +125,13 @@ export function makeEarth(query, config = {}) {
     if(!config.EARTHDATA_TOKEN)return Promise.resolve({configurationRequired:true});
     return cache('thermal:'+field.lat.toFixed(4)+':'+field.lon.toFixed(4),12*hour,async()=>{
       const result=await sampleThermal(await granules('ecostress',field),field,config.EARTHDATA_TOKEN);
-      if(result.unavailable)throw Error('No usable clear-sky raster sample');
+      if(result.unavailable){
+        const error=new Error('ECOSTRESS surface data unavailable: '+result.reason);
+        error.thermalReason=result.reason;
+        throw error;
+      }
       return result;
-    });
+    },{reason:'catalogueUnavailable'});
   }
 
   async function refreshSmap({timeBudgetMs=Infinity}={}) {
